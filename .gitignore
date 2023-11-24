@@ -1,0 +1,17 @@
+/Taslak/bin/
+/Taslak/obj/
+
+
+/Taslak/node_modules
+/Taslak/wwwroot/node_modules
+/Taslak/appsettings.Development.json
+/Taslak/appsettings.json
+
+
+
+### VisualStudioCode ###
+.vscode/*      # Maybe .vscode/**/* instead - see comments
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

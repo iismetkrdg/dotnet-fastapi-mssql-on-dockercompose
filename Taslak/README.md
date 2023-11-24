@@ -1,0 +1,2 @@
+# mvc-dotnet-taslak
+# webProgramlamaProje

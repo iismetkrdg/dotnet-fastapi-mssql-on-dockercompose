@@ -1,0 +1,21 @@
+@{
+    ViewBag.Title = "Recommendations";
+}
+@*make recommendations table, ViewBag.Recommendations*@
+<h2>Recommendations</h2>
+<table>
+    <tr>
+        <th>Recommendation</th>
+        <th>Popularity</th>
+        <th>Extarnal url</th>
+    </tr>
+    @foreach (var item in ViewBag.Recommendations)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.Popularity</td>
+            <td><a href="@item.ExternalUrls.Spotify">Dinle</a></td>
+        </tr>
+    }
+</table>
+

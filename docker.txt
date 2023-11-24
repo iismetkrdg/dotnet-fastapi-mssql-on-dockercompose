@@ -1,0 +1,15 @@
+Dockerda mssql sıfırdan başlıyor. Bu yüzden ilk olarak docker çalıştırmalı ve appsettings.json ve appsettings.Development.json dosyalarında bulunan connection stringlerini aşağıdaki gibi değiştirmeliyiz.
+
+docker-compose up komutundan önce appsettings.json ve appsettings.Development.json dosyalarında bulunan connection string:
+    
+    "MvcContext": "Data Source=db,1433;Initial Catalog=mydb;TrustServerCertificate=True;User Id=sa;Password=Pw12345678;Encrypt=False;"
+
+    'db' olmasının sebebi database container adı db.
+docker compose up komutundan sonra appsettings.json ve appsettings.Development.json dosyalarında bulunan connection string:
+
+    "MvcContext": "Data Source=localhost,1433;Initial Catalog=mydb;TrustServerCertificate=True;User Id=sa;Password=Pw12345678;Encrypt=False;"
+
+Daha sonra dotnet klasöründe terminalde aşağıdaki komutu çalıştırıyoruz(ekstra bir değişiklik yoksa migration atmamıza gerek yok ilk satırdaki kodu atlayabiliriz).
+
+    -dotnet ef migrations add "message" 
+    -dotnet ef database update

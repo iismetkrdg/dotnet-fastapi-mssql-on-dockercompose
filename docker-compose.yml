@@ -1,0 +1,28 @@
+services:
+  api:
+    build: ./fastAPI
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+  webapp:
+    build: ./Taslak
+    ports:
+      - "8080:8080"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      - db
+  db:
+    ports:
+      - "1433:1433"
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      "ACCEPT_EULA": Y
+      "MSSQL_SA_PASSWORD" : "Pw12345678"
+      "MSSQL_PID": "Developer"
+      "MSSQL_TCP_PORT": "1433"
+    volumes:
+      - ./mysql:/var/lib/mysql
+volumes:
+  mysql:

@@ -1,0 +1,53 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+.nav-link {
+  color: black !important;
+}
+.navbar-brand {
+  font-size: x-large !important;
+}
+body {
+  background-color: #FFFFFF !important;
+}
+.gap-image img{
+  height: 50vh !important;
+  width: 100vw !important;
+  object-fit:cover;
+  display:grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  grid-template-rows: 1fr 1fr 1fr !important;
+  row-gap: 25px !important;
+  column-gap: 25px !important;
+}
+.deleteButton{
+  background-color: #FF0000 !important;
+  color: #FFFFFF !important;
+  cursor: pointer !important;
+  margin-left: 10px !important;
+}
+.flex-container {
+  display: flex !important;
+  flex-wrap: wrap !important; /* Satır sonunda yeni satıra geç */
+  gap: 10px !important;
+}
+.input-container {
+  display: flex;
+  align-items: center; /* Öğeleri dikeyde ortala */
+  gap: 10px; /* Giriş alanı ve düğme arasındaki boşluk */
+}

@@ -1,0 +1,22 @@
+@model Taslak.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+<div class="row offset-md-4 col-md-4">
+    <form method="post" asp-controller="Account" asp-action="Login">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label class="form-label" asp-for="Username">Username</label>
+            <input class="form-control" type="text" asp-for="Username">
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label class="form-label" asp-for="Password">Password</label>
+            <input class="form-control" type="text" asp-for="Password">
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="form-group mt-4 d-grid">
+            <input type="submit" class="btn btn-primary" value="Login">
+        </div>
+    </form>
+</div>
