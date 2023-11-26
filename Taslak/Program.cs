@@ -19,6 +19,11 @@ builder.Services.AddHttpClient<ISpotifyService, SpotifyService>(client =>
 {
     client.BaseAddress = new Uri("https://api.spotify.com/v1/");
 });
+builder.Services.AddHttpClient<IApiService, ApiService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8081/");
+});
+
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

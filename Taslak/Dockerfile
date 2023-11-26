@@ -1,20 +1,15 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG TARGETARCH
-WORKDIR /source
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /App
 
-RUN dotnet tool install --global dotnet-ef
-# copy csproj and restore as distinct layers
-COPY *.csproj .
-RUN dotnet restore -a $TARGETARCH
+# Copy everything
+COPY . ./
+# Restore as distinct layers
+RUN dotnet restore
+# Build and publish a release
+RUN dotnet publish -c Release -o out
 
-# copy and publish app and libraries
-COPY . .
-RUN dotnet publish -a $TARGETARCH --no-restore -o /app
-
-
-# final stage/image
-FROM mcr.microsoft.com/dotnet/runtime:8.0
-WORKDIR /app
-COPY --from=build /app .
-USER $APP_UID
-ENTRYPOINT ["./dotnetapp"]
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /App
+COPY --from=build-env /App/out .
+ENTRYPOINT ["dotnet", "Taslak.dll"]

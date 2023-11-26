@@ -12,8 +12,8 @@ using Taslak.Data;
 namespace Taslak.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20231126133119_userdatetime")]
-    partial class userdatetime
+    [Migration("20231126173305_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
