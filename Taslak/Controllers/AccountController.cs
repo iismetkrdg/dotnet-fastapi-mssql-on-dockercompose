@@ -46,14 +46,14 @@ namespace Taslak.Controllers
                 string md5Salt = _configuration.GetValue<string>("AppSettings:MD5Salt");
                 string saltedPassword = data.Password + md5Salt;
                 string hashedPassword = saltedPassword.MD5();
-                var user = _context.User.FirstOrDefault(p=>p.Username == data.Username && p.Password == hashedPassword);
+                var user = _context.User.FirstOrDefault(p=>p.Email == data.Email && p.Password == hashedPassword);
                 if (user != null)
                 {
                     var claims = new List<Claim>
                     {
                         new Claim("username",user.Username),
                         new Claim(ClaimTypes.Name, user.Username),
-                        new Claim(ClaimTypes.Role, "admin"),
+                        new Claim(ClaimTypes.Role, user.Role),
                     };
                     var claimsIdentity = new ClaimsIdentity(
                         claims,CookieAuthenticationDefaults.AuthenticationScheme);
@@ -66,6 +66,11 @@ namespace Taslak.Controllers
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                         new ClaimsPrincipal(claimsIdentity),
                         authproperties);
+                    user.LastLoginDate2 = user.LastLoginDate;
+                    user.LastLoginDate = DateTime.Now;
+                    _context.Update(user);
+                    _context.SaveChanges();
+
                     return RedirectToAction("index","home");
 
                 }
@@ -90,10 +95,10 @@ namespace Taslak.Controllers
             {
                 return View();
             }else{
-                var a = _context.User.FirstOrDefault(p => p.Username == user.Username);
+                var a = _context.User.FirstOrDefault(p => p.Email == user.Email);
                 if(a != null)
                 {
-                    ModelState.AddModelError(nameof(user.Username),"Bu kullanıcı adı daha önce alınmış.");
+                    ModelState.AddModelError(nameof(user.Email),"Bu mail adresi zaten kullanılıyor.");
                     return View(user);
                 }else{
                     var b = _context.User.FirstOrDefault(p => p.Email == user.Email);
@@ -105,6 +110,7 @@ namespace Taslak.Controllers
                         string md5Salt = _configuration.GetValue<string>("AppSettings:MD5Salt");
                         string saltedPassword = user.Password + md5Salt;
                         string hashedPassword = saltedPassword.MD5();
+                        user.Role = "user";
                         user.Password = hashedPassword;
                         user.Repassword = hashedPassword;
                         _context.Add(user);
@@ -114,11 +120,51 @@ namespace Taslak.Controllers
                 }
             }
         }
+        public IActionResult ForgotPassword()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("index","home");
+            }
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForgotPassword(ForgotPasswordViewModel data)
+        {
+            if(!ModelState.IsValid)
+            {
+                ModelState.AddModelError(nameof(data.Email),"E-mail zorunludur.");
+                return View(data);
+            }else{
+                var a = _context.User.FirstOrDefault(p => p.Email == data.Email);
+                if(a != null)
+                {
+                    return View("ForgotPassword");
+                }else{
+                    ModelState.AddModelError(nameof(data.Email),"Bu mail adresi kayıtlı değil.");
+                    return View(data);
+                }
+            }
+        }
         public IActionResult Logout()
         {
             AuthenticationHttpContextExtensions.SignOutAsync(HttpContext
                 , CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Account");
+        }
+        public IActionResult Profile()
+        {
+            return View(_context.User.FirstOrDefault(p => p.Username == User.Identity.Name));
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteAccount()
+        {
+            var user = _context.User.FirstOrDefault(p => p.Username == User.Identity.Name);
+            _context.Remove(user);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Logout));
         }
         
     }

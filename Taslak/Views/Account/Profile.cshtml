@@ -1,0 +1,50 @@
+@model Taslak.Models.User
+@{
+    ViewBag.Title = @User.Identity.Name;
+}
+<header class="page-section masthead bg-theme-color">
+    <div class="container px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 mt-5">
+            <div class="col-md-3 col-lg-3 col-xl-3">
+                <div class="text-center text-white">
+                    <hr class="divider" />
+                    <ul class="nav flex-column bg-light rounded p-2 nav-underline " style="--bs-bg-opacity:.5;">
+                        <li class="nav-item">
+                            <a class='nav-link text-white' aria-current="page" asp-controller="Account" asp-action="Profile">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class='nav-link text-white' aria-current="page" role="button" onclick="toggleMenuProfile();"> Delete account and all data</a>
+                        </li>
+                    </ul>
+                    
+
+                </div>
+            </div>
+            <div class="col-md-9 col-lg-9 col-xl-9 ">
+                <div class="mt-5 bg-light p-5 rounded w-100" style="--bs-bg-opacity: .3;" id="profileData">
+                    <h2 class="display-4 fw-bolder text-white">Hello, @User.Identity.Name</h2>
+                    <p class="lead fw-normal text-white-50 mb-0">Welcome to your profile page. Here you can see your profile information and delete your account.</p>
+                    <div class="text-center text-white">
+                        <hr class="divider">
+                        <p class="lead fw-normal text-white mb-0">Username: @User.Identity.Name</p>
+                        <p class="lead fw-normal text-white mb-0">Email: @Model.Email</p>
+                        <p class="lead fw-normal text-white mb-0">Registration date: @Model.RegistrationDate</p>
+                        <p class="lead fw-normal text-white mb-0">Last login date: @Model.LastLoginDate</p>
+                    </div>
+                </div>
+                <div class="mt-5 bg-light p-5 rounded w-100 d-none" style="--bs-bg-opacity: .3;" id="deleteAcc">
+                    <h2 class="display-4 fw-bolder text-white">Hello, @User.Identity.Name</h2>
+                    <p class="lead fw-normal text-white-50 mb-0">Welcome to your profile page. Here you can see your profile information and delete your account.</p>
+                    <div class="text-center text-white">
+                        <hr class="divider">
+                        <h4>Make sure you want to delete your account, we will delete all your data?</h4>
+                        <form asp-controller="Account" asp-action="DeleteAccount" method="post">
+                            <button type="submit" class="btn btn-danger">Delete account</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+

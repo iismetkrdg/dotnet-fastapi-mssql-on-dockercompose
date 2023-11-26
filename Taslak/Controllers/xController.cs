@@ -69,9 +69,9 @@ namespace Taslak.Controllers
             }
             return RedirectToAction("Index");
         }
-        public IActionResult Data()
+        public IActionResult Data(string id)
         {
-
+            Console.WriteLine(id);
             return View();
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -25,6 +25,12 @@ namespace Taslak.Models
         public string Repassword { get; set; }
         
         [DataType(DataType.EmailAddress)]
+        [Required(ErrorMessage ="E-mail zorunludur.")]
         public string Email { get; set; }
+        public string Role { get; set; }
+        public int xTimesUsedAlg { get; set; } = 0;
+        public DateTime RegistrationDate { get; set; } = DateTime.Now;
+        public DateTime LastLoginDate { get; set; } = DateTime.Now;
+        public DateTime LastLoginDate2 { get; set; } = DateTime.Now;
     }
 }
