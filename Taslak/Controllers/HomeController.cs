@@ -12,18 +12,15 @@ public class HomeController : Controller
     private readonly IConfiguration _configuration;
     private readonly ISpotifyAccountService _spotifyAccountService;
     private readonly ISpotifyService _spotifyService;
-    private readonly IApiService _apiService;
-    public HomeController( ISpotifyAccountService spotifyAccountService,IConfiguration configuration,ISpotifyService spotifyService,IApiService apiService)
+    public HomeController( ISpotifyAccountService spotifyAccountService,IConfiguration configuration,ISpotifyService spotifyService)
     {
         _configuration = configuration;
         _spotifyAccountService = spotifyAccountService;
         _spotifyService = spotifyService;
-        _apiService = apiService;
     }
 
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
-        await _apiService.MakeRecommendation("1");
         return View();
     }
     public async Task<IActionResult> AudioFeatures()

@@ -16,13 +16,12 @@ namespace Taslak.Services
             _httpClient = httpClient;
             _logger = logger;
         }
-        public async Task<string> MakeRecommendation(string id)
+        public async Task<string> MakeRecommendation(string id, string random_id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "makerecommendation/"+id);
+            var request = new HttpRequestMessage(HttpMethod.Get, "makerecommendation/"+id+"/"+random_id);
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var responseJson = await response.Content.ReadAsStringAsync();
-            System.Console.WriteLine(responseJson);
             return responseJson;
             }
     }

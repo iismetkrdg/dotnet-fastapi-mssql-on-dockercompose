@@ -21,12 +21,15 @@ namespace Taslak.Controllers
         private readonly ISpotifyAccountService _spotifyAccountService;
         private readonly ISpotifyService _spotifyService;
         private readonly MyDbContext _context;
-        public xController( ISpotifyAccountService spotifyAccountService,IConfiguration configuration,ISpotifyService spotifyService,MyDbContext context)
+        private readonly IApiService _apiService;
+        public xController( ISpotifyAccountService spotifyAccountService,IConfiguration configuration,ISpotifyService spotifyService,MyDbContext context,IApiService apiService)
         {
             _configuration = configuration;
             _spotifyAccountService = spotifyAccountService;
             _spotifyService = spotifyService;
             _context = context;
+            _apiService = apiService;
+
         }
 
         public IActionResult Index()
@@ -34,7 +37,7 @@ namespace Taslak.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult PlaylistUrls(SendUrlsViewModel data)
+        public async Task<IActionResult> PlaylistUrls(SendUrlsViewModel data)
         {
             if (ModelState.IsValid)
             {
@@ -63,15 +66,19 @@ namespace Taslak.Controllers
                     Id = randomId,
                     PlaylistIds = ids.ToArray()
                 };
+                string idsString = string.Join(",",ids);
+                var res = await _apiService.MakeRecommendation(idsString,randomId);
+                System.Console.WriteLine(res);
                 _context.RecommendationModel.Add(model);
                 _context.SaveChanges();
-                return RedirectToAction("Data",new {id = randomId});
+
+                return RedirectToAction("Data",new {});
             }
             return RedirectToAction("Index");
         }
         public IActionResult Data(string id)
         {
-            Console.WriteLine(id);
+
             return View();
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

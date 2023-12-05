@@ -8,6 +8,6 @@ namespace Taslak.Services
 {
     public interface IApiService
     {
-        Task<string> MakeRecommendation(string id);
+        Task<string> MakeRecommendation(string id, string random_id);
     }
 }
