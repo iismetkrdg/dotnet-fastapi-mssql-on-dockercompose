@@ -1,29 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using NETCore.Encrypt.Extensions;
 using Taslak.Data;
 using Taslak.Models;
 using Taslak.ViewModels;
-
+using System.Text.Json;
+using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Taslak.Services;
 namespace Taslak.Controllers
 {
     public class AccountController : Controller
     {
         private readonly MyDbContext _context;
         private readonly IConfiguration _configuration;
-        public AccountController(MyDbContext context, IConfiguration configuration)
+        private readonly IEmailService emailService;
+        public AccountController(MyDbContext context, IConfiguration configuration, IEmailService emailSender)
         {
             _context = context;
             _configuration = configuration;
+            emailService = emailSender;
         }
         public IActionResult Login()
         {
@@ -54,6 +52,7 @@ namespace Taslak.Controllers
                         new Claim("username",user.Username),
                         new Claim(ClaimTypes.Name, user.Username),
                         new Claim(ClaimTypes.Role, user.Role),
+                        new Claim("SpotifyLoggedIn","false")
                     };
                     var claimsIdentity = new ClaimsIdentity(
                         claims,CookieAuthenticationDefaults.AuthenticationScheme);
@@ -89,7 +88,7 @@ namespace Taslak.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Register(User user)
+        public async Task<IActionResult> Register(User user)
         {
             if(!ModelState.IsValid)
             {
@@ -101,12 +100,6 @@ namespace Taslak.Controllers
                     ModelState.AddModelError(nameof(user.Email),"Bu mail adresi zaten kullanılıyor.");
                     return View(user);
                 }else{
-                    var b = _context.User.FirstOrDefault(p => p.Email == user.Email);
-                    if(a != null)
-                    {
-                        ModelState.AddModelError(nameof(user.Email),"Bu mail adresi zaten kullanılıyor.");
-                        return View(user);
-                    }else{
                         string md5Salt = _configuration.GetValue<string>("AppSettings:MD5Salt");
                         string saltedPassword = user.Password + md5Salt;
                         string hashedPassword = saltedPassword.MD5();
@@ -114,10 +107,11 @@ namespace Taslak.Controllers
                         user.Password = hashedPassword;
                         user.Repassword = hashedPassword;
                         _context.Add(user);
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
+                        var text = $"Selam yeni kullanıcı,\n\nAramıza hoşgeldin! Dilersen 7Taste hesabını Spotify hesabın ile eşleyebilir, kullanımı daha kolay bir arayüz ile yeni şarkılar keşfedebilirsin.\n\nİyi Keşifler.\n7Taste ekibi";
+                        await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
                         return RedirectToAction("Login","Account");
                     }
-                }
             }
         }
         public IActionResult ForgotPassword()
@@ -130,17 +124,28 @@ namespace Taslak.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ForgotPassword(ForgotPasswordViewModel data)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel data)
         {
             if(!ModelState.IsValid)
             {
                 ModelState.AddModelError(nameof(data.Email),"E-mail zorunludur.");
                 return View(data);
+                
             }else{
-                var a = _context.User.FirstOrDefault(p => p.Email == data.Email);
-                if(a != null)
+                var user = _context.User.FirstOrDefault(p => p.Email == data.Email);
+                if(user != null)
                 {
-                    return View("ForgotPassword");
+                    var newPassword = Guid.NewGuid().ToString().Substring(0,12);
+                    string md5Salt = _configuration.GetValue<string>("AppSettings:MD5Salt");
+                    string saltedPassword = newPassword + md5Salt;
+                    string hashedPassword = saltedPassword.MD5();
+                    user.Password = hashedPassword;
+                    user.Repassword = hashedPassword;
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                    var text = $"Merhaba {user.Username},\n\nYeni şifreniz: {newPassword}\n\nİyi günler.\n7Taste ekibi";
+                    await emailService.SendEmail(user.Username,user.Email,"Şifre Sıfırlama İsteği",text);
+                    return RedirectToAction("Login","Account");
                 }else{
                     ModelState.AddModelError(nameof(data.Email),"Bu mail adresi kayıtlı değil.");
                     return View(data);
@@ -151,6 +156,7 @@ namespace Taslak.Controllers
         {
             AuthenticationHttpContextExtensions.SignOutAsync(HttpContext
                 , CookieAuthenticationDefaults.AuthenticationScheme);
+            
             return RedirectToAction("Login", "Account");
         }
         public IActionResult Profile()
@@ -159,12 +165,216 @@ namespace Taslak.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteAccount()
+        public async Task<IActionResult> DeleteAccount()
         {
             var user = _context.User.FirstOrDefault(p => p.Username == User.Identity.Name);
             _context.Remove(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+            _ = AuthenticationHttpContextExtensions.SignOutAsync(HttpContext
+                , CookieAuthenticationDefaults.AuthenticationScheme);
+            var text = $"Selam {user.Username},\n\nAramızdan ayrılmana üzüldük. Umarız en kısa zamanda tekrar burada olursun.\n\nTüm verilerini sildik. Bizde sana ait hiçbir veri kalmadı.\n\n7Taste ekibi";
+            await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
             return RedirectToAction(nameof(Logout));
+        }
+        public IActionResult LoginWithSpotify()
+        {
+            var ClientId = _configuration.GetValue<string>("Spotify:ClientId");
+            var redirectUri = _configuration.GetValue<string>("Spotify:RedirectUri");
+            var scopes = "user-read-email+user-read-private+playlist-read-private+playlist-modify-private+playlist-modify-public";  
+            var url = "https://accounts.spotify.com/authorize";
+            url += "?response_type=code";
+            url += "&client_id="+ClientId;
+            url += "&scope="+scopes;
+            url += "&show_dialog=1";
+            url += "&redirect_uri="+redirectUri;
+            return Redirect(url);
+        }
+        public async Task<IActionResult> Callback(string code)
+        {
+            var ClientId = _configuration.GetValue<string>("Spotify:ClientId");
+            var ClientSecret = _configuration.GetValue<string>("Spotify:ClientSecret");
+            var redirectUri = _configuration.GetValue<string>("Spotify:RedirectUri");
+            var url = "https://accounts.spotify.com/api/token";
+            var client = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            var form = new Dictionary<string, string>
+            {
+                ["grant_type"] = "authorization_code",
+                ["code"] = code,
+                ["redirect_uri"] = redirectUri,
+                ["client_id"] = ClientId,
+                ["client_secret"] = ClientSecret,
+            };
+            request.Content = new FormUrlEncodedContent(form);
+            var response = await client.SendAsync(request);
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var token = JsonSerializer.Deserialize<SpotifyToken>(responseJson);
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = _context.User.FirstOrDefault(p => p.Username == User.Identity.Name);
+                var client2 = new HttpClient();
+                var url2 = "https://api.spotify.com/v1/me";
+                var request2 = new HttpRequestMessage(HttpMethod.Get, url2);
+                request2.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.access_token);
+                var response2 = await client2.SendAsync(request2);
+                var responseJson2 = await response2.Content.ReadAsStringAsync();
+                var data = JsonSerializer.Deserialize<SpotifyUserData>(responseJson2);
+                user.SpotifyId = data.id;
+                user.SpotifyToken = token.access_token.ToString();
+                user.Expires_in = DateTime.Now.AddSeconds(token.expires_in);
+                user.Refresh_token = token.refresh_token;
+                user.Scope = token.scope;
+                user.Role = "user";
+                var options = new CookieOptions
+                {
+                    Expires = DateTime.Now.AddMinutes(5),
+                    HttpOnly = true,
+                    Secure = true,
+                };
+                Response.Cookies.Append("access_token", token.access_token, options);   
+                Response.Cookies.Append("refresh_token", token.refresh_token, options);
+                Response.Cookies.Append("expires_in", token.expires_in.ToString(), options);
+                _context.Update(user);
+                _context.SaveChanges();
+                var text = $"Selam {user.Username},\n\nSpotify hesabın ile 7Taste'e bağlandın.\n\nİyi Keşifler.\n7Taste ekibi";
+                await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+                return RedirectToAction("UserPlaylists","x");
+            }
+            else
+            {
+                var client2 = new HttpClient();
+                var url2 = "https://api.spotify.com/v1/me";
+                var request2 = new HttpRequestMessage(HttpMethod.Get, url2);
+                request2.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.access_token);
+                var response2 = await client2.SendAsync(request2);
+                var responseJson2 = await response2.Content.ReadAsStringAsync();
+                var data = JsonSerializer.Deserialize<SpotifyUserData>(responseJson2);
+                var user = _context.User.FirstOrDefault(p => p.Email == data.email);
+                if (user != null)
+                {
+                    var claims = new List<Claim>
+                    {
+                        new Claim("username",user.Username),
+                        new Claim(ClaimTypes.Name, user.Username),
+                        new Claim(ClaimTypes.Role, user.Role),
+                        new Claim("SpotifyLoggedIn","true")
+                    };
+                    var claimsIdentity = new ClaimsIdentity(
+                        claims,CookieAuthenticationDefaults.AuthenticationScheme);
+                    var authproperties = new AuthenticationProperties
+                    {
+                        AllowRefresh = true,
+                        ExpiresUtc = DateTimeOffset.Now.AddDays(30),
+                    };
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authproperties);
+                    user.SpotifyToken = token.access_token.ToString();
+                    user.Expires_in = DateTime.Now.AddSeconds(token.expires_in);
+                    user.Refresh_token = token.refresh_token;
+                    user.Scope = token.scope;
+                    user.SpotifyId = data.id;
+                    user.Role = "user";
+                    var options = new CookieOptions
+                    {
+                        Expires = DateTime.Now.AddMinutes(5),
+                        HttpOnly = true,
+                        Secure = true,
+                    };
+                    Response.Cookies.Append("access_token", token.access_token, options);   
+                    Response.Cookies.Append("refresh_token", token.refresh_token, options);
+                    Response.Cookies.Append("expires_in", token.expires_in.ToString(), options);
+                    _context.Update(user);
+                    _context.SaveChanges();
+                    var text = $"Selam {user.Username},\n\n7Taste hesabını Spotify hesabın ile eşledin.\n\nİyi Keşifler.\n7Taste ekibi";
+                    await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+                    return RedirectToAction("UserPlaylists","x");
+                }
+                else
+                {
+                    var newUser = new User();
+                    newUser.Email = data.email;
+                    newUser.Username = data.display_name;
+                    newUser.Role = "user";
+                    newUser.Password = "SpotifyUserasdasdads";
+                    newUser.Repassword = "SpotifyUser11111111sadasdhhh";
+                    newUser.SpotifyToken = token.access_token.ToString();
+                    newUser.Expires_in = DateTime.Now.AddSeconds(token.expires_in);
+                    newUser.Refresh_token = token.refresh_token;
+                    newUser.Scope = token.scope;
+                    newUser.SpotifyId = data.id;
+                    var options = new CookieOptions
+                    {
+                        Expires = DateTime.Now.AddMinutes(5),
+                        HttpOnly = true,
+                        Secure = true,
+                    };
+                    Response.Cookies.Append("access_token", token.access_token, options);   
+                    Response.Cookies.Append("refresh_token", token.refresh_token, options);
+                    Response.Cookies.Append("expires_in", token.expires_in.ToString(), options);
+                    _context.Add(newUser);
+                    _context.SaveChanges();
+                    var claims = new List<Claim>
+                    {
+                        new Claim("username",newUser.Username),
+                        new Claim(ClaimTypes.Name, newUser.Username),
+                        new Claim(ClaimTypes.Role, newUser.Role),
+                        new Claim("SpotifyLoggedIn","true")
+                    };
+                    var claimsIdentity = new ClaimsIdentity(
+                        claims,CookieAuthenticationDefaults.AuthenticationScheme);
+                    var authproperties = new AuthenticationProperties
+                    {
+                        AllowRefresh = true,
+                        ExpiresUtc = DateTimeOffset.Now.AddDays(30),
+                    };
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authproperties);
+                    var text = $"Selam {user.Username},\n\nAramıza hoşgeldin. Seni aramızda görmek çok güzel. İyi keşifler diliyoruz.\n\n7Taste ekibi";
+                    await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+                    return RedirectToAction("UserPlaylists","x");
+                }
+            }
+        }
+        
+        public async Task<IActionResult> RefreshToken()
+        {
+            var ClientId = _configuration.GetValue<string>("Spotify:ClientId");
+            var ClientSecret = _configuration.GetValue<string>("Spotify:ClientSecret");
+            var redirectUri = _configuration.GetValue<string>("Spotify:RedirectUri");
+            var url = "https://accounts.spotify.com/api/token";
+            var client = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            var form = new Dictionary<string, string>
+            {
+                ["grant_type"] = "refresh_token",
+                ["refresh_token"] = Request.Cookies["refresh_token"],
+                ["redirect_uri"] = redirectUri,
+                ["client_id"] = ClientId,
+                ["client_secret"] = ClientSecret,
+            };
+            request.Content = new FormUrlEncodedContent(form);
+            var response = await client.SendAsync(request);
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var token = JsonSerializer.Deserialize<SpotifyToken>(responseJson);
+            var user = _context.User.FirstOrDefault(p => p.Username == User.Identity.Name);
+            user.SpotifyToken = token.access_token.ToString();
+            user.Expires_in = DateTime.Now.AddSeconds(token.expires_in);
+            user.Refresh_token = token.refresh_token;
+            user.Scope = token.scope;
+            var options = new CookieOptions
+            {
+                Expires = DateTime.Now.AddMinutes(5),
+                HttpOnly = true,
+                Secure = true,
+            };
+            Response.Cookies.Append("access_token", token.access_token, options);   
+            Response.Cookies.Append("refresh_token", token.refresh_token, options);
+            Response.Cookies.Append("expires_in", token.expires_in.ToString(), options);
+            _context.Update(user);
+            _context.SaveChanges();
+            return RedirectToAction("UserPlaylists","x");
         }
         
     }

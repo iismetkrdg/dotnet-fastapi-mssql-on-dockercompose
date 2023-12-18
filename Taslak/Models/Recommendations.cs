@@ -8,8 +8,6 @@ namespace Taslak.Models
 {
     public class Recommendations
     {
-        [JsonPropertyName("recommendations_id")]
-        public string RecommendationsId { get; set; }
         [JsonPropertyName("tracks")]
         public Track[] Tracks { get; set; }
         [JsonPropertyName("seeds")]

@@ -7,7 +7,7 @@
 /Taslak/appsettings.Development.json
 /Taslak/appsettings.json
 
-
+/Taslak/Migrations
 
 ### VisualStudioCode ###
 .vscode/*      # Maybe .vscode/**/* instead - see comments
@@ -15,3 +15,4 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+

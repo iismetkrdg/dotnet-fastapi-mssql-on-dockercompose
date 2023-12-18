@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Find ur Taste";
 }
-<header class="masthead-1 mb-0">
+<header class="masthead-1 mb-0" style="height: 50vh !important;padding-top:20vh;">
     <div class="container px-4 px-lg-5 h-25">
         <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
             <div class="col-lg-12 align-self-end">
@@ -19,8 +19,13 @@
     <div class="container px-4 px-lg-5">
         <div class="row justify-content-center mb-5">
             <div class="col-lg-12 card border gx-4 gx-lg-5 text-center mb-4 mt-0 p-4 border-0 w-75 bg-success-subtle">
-                Copy & paste your spotify playlist links below
+                Copy & paste your spotify playlist links below and create your 7Taste link.
             </div>
+            <div class="col-lg-12 card border gx-4 gx-lg-5 text-center mb-4 mt-0 p-4 border-0 w-75 bg-danger-subtle" style="font-size: 8pt;">
+                <p>In this section you can only use public spotify playlist links. If you want to use your private spotify playlists, you can use </p>
+                <a class="btn btn-sm" style="background-color: #1cd760;" asp-controller="account" asp-action="LoginWithSpotify">Login with Spotify</a>
+            </div>
+            
             <div class="col-lg-8">
                 <form method="post" asp-controller="x" asp-action="PlaylistUrls" >
                     <div class="form-floating mb-3 w-100">
@@ -28,7 +33,7 @@
                         <label class="form-label" asp-for="links">Urls</label>
                         <span asp-validation-for="links" class="text-danger"></span>
                     </div>
-                    <button class="btn btn-light text-success" type="submit" value=""> <i class="bi bi-share text-dark"></i> Create your 7Taste link</button>
+                    <button class="btn btn-light text-success" type="submit" value=""> <i class="bi bi-share text-dark"></i> Create your new Taste</button>
                 </form>
             </div>
         </div>

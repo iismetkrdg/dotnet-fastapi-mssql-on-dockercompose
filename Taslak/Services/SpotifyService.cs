@@ -5,8 +5,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Taslak.Models;
-using PandasNet;
-using Swan.Formatters;
+using System.Text;
 namespace Taslak.Services
 {
     public class SpotifyService : ISpotifyService
@@ -44,8 +43,9 @@ namespace Taslak.Services
             var sarki = await JsonSerializer.DeserializeAsync<TracksAudioFeatures>(responseJson);
             return sarki;
         }
-        public async Task<Recommendations> GetRecommendations(RecommendationData data, string token)
+        public async Task<Recommendations> GetRecommendations(RecommendationData data)
         {
+            string token = await _spotifyAccountService.GetToken(_configuration["Spotify:ClientId"], _configuration["Spotify:ClientSecret"]);
             //create an url with query string
             var url = "recommendations?"+data.ToQueryString();
             //create a request
@@ -83,8 +83,34 @@ namespace Taslak.Services
             string token = await _spotifyAccountService.GetToken(_configuration["Spotify:ClientId"], _configuration["Spotify:ClientSecret"]);
             //get all tracks audio features
             tracksAudioFeatures = await GetTracksAudioFeatures(TrackIds, token);
-            System.Console.WriteLine(tracksAudioFeatures.AudioFeatures[0].Acousticness);
             return tracksAudioFeatures;
+        }
+        public async Task<bool> CreatePlaylist(string name,string description)
+        {
+            //create a request
+            var token = await _spotifyAccountService.GetToken(_configuration["Spotify:ClientId"], _configuration["Spotify:ClientSecret"]);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"users/jh5acgz9f98oqzr1jc8lc5uac/playlists");
+            //add token to request
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            //create a json object
+            var json = new
+            {
+                name = name,
+                description = description
+            };
+            //serialize json object
+            var jsonstring = JsonSerializer.Serialize(json);
+            //add json to request
+            request.Content = new StringContent(jsonstring, Encoding.UTF8, "application/json");
+            //send request
+            var response = await _httpClient.SendAsync(request);
+            //ensure success
+            response.EnsureSuccessStatusCode();
+            //get response as string
+            var responseJson = await response.Content.ReadAsStringAsync();
+            //deserialize response
+            var playlist = JsonSerializer.Deserialize<Playlist>(responseJson);
+            return true;
         }
 
     }

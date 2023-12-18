@@ -35,6 +35,34 @@ namespace Taslak.Migrations
                     b.ToTable("RecommendationModel");
                 });
 
+            modelBuilder.Entity("Taslak.Models.ToSaveTracksIds", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("At_Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PlaylistId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecommendationId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrackIds")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ToSaveTracksIds");
+                });
+
             modelBuilder.Entity("Taslak.Models.User", b =>
                 {
                     b.Property<int>("UserID")
@@ -43,9 +71,15 @@ namespace Taslak.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
+                    b.Property<int>("DiscoveredTrack")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Expires_in")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("LastLoginDate")
                         .HasColumnType("datetime2");
@@ -58,6 +92,9 @@ namespace Taslak.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Refresh_token")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("datetime2");
 
@@ -69,11 +106,20 @@ namespace Taslak.Migrations
                     b.Property<string>("Role")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Scope")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SpotifyId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SpotifyToken")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("xTimesUsedAlg")
+                    b.Property<int>("XTimesUsedAlg")
                         .HasColumnType("int");
 
                     b.HasKey("UserID");

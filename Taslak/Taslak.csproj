@@ -14,12 +14,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SQLite" Version="8.0.0-rc.2.23480.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0-rc.2.23480.1" />
     <PackageReference Include="NETCore.Encrypt" Version="2.1.1" />
-    <PackageReference Include="Pandas.NET" Version="0.5.1" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
-    <PackageReference Include="pythonnet" Version="3.0.3" />
-    <PackageReference Include="SpotifyAPI.Web" Version="7.0.0" />
-    <PackageReference Include="SpotifyAPI.Web.Auth" Version="7.0.0" />
-    <PackageReference Include="TensorFlow.NET" Version="0.110.4" />
   </ItemGroup>
 
 </Project>

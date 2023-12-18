@@ -14,5 +14,6 @@ namespace Taslak.Data
         }
         public DbSet<Models.User> User { get; set; }
         public DbSet<Models.RecommendationModel> RecommendationModel { get; set; }
+        public DbSet<Models.ToSaveTracksIds> ToSaveTracksIds { get; set; }
     }
 }

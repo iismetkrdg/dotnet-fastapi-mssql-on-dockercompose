@@ -20,5 +20,5 @@ def read_root():
 
 @app.get("/makerecommendation/{pl_ids}/{rec_id}")
 def read_item(pl_id: str,rec_id: str, q: Union[str, None] = None):
-
+    
     return {"pl_id": pl_id, "q": q, "rec_id": rec_id}

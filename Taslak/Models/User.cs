@@ -28,9 +28,15 @@ namespace Taslak.Models
         [Required(ErrorMessage ="E-mail zorunludur.")]
         public string Email { get; set; }
         public string Role { get; set; }
-        public int xTimesUsedAlg { get; set; } = 0;
+        public int XTimesUsedAlg { get; set; } = 0;
         public DateTime RegistrationDate { get; set; } = DateTime.Now;
         public DateTime LastLoginDate { get; set; } = DateTime.Now;
         public DateTime LastLoginDate2 { get; set; } = DateTime.Now;
+        public string SpotifyToken { get; set; }
+        public DateTime Expires_in { get; set; }
+        public string Refresh_token { get; set; }
+        public string Scope { get; set; }
+        public string SpotifyId { get; set; }
+        public int DiscoveredTrack { get; set; } = 0;
     }
 }

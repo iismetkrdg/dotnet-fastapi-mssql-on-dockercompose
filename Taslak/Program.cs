@@ -23,7 +23,10 @@ builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 {
     client.BaseAddress = new Uri("http://localhost:8081/");
 });
-
+builder.Services.AddHttpClient<IEmailService, EmailService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.brevo.com/v3/smtp/email");
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -11,12 +11,22 @@
                     <hr class="divider" />
                 </div>
                 <div class="text-center text-white">
-                    <h3><span id="appdata1">4 people were here</span> in the last hour.</h3>
+                    <h3><span id="sayi">4</span> people were here in the last hour.</h3>
                 </div>
                 <script>
-                    var s = document.getElementById("appdata1").innerHTML;
-                    var i = 0;
-                    var speed = 50;
+                    var sayi = parseInt(localStorage.getItem('sayi')) || 4;
+                    var sayiElement = document.getElementById('sayi');
+                    if (sayi > 50) {
+                        sayi = sayi %7;
+                    }
+                    // Sayıyı bir artır
+                    sayi += 5;
+
+                    // Sayıyı Local Storage'a kaydet
+                    localStorage.setItem('sayi', sayi);
+
+                    // Sayıyı ekrana yaz
+                    sayiElement.innerText = sayi;
                 </script>
             </div>
             <div class="col-md-6 col-lg-6 col-xl-6 ">
@@ -39,6 +49,10 @@
                         <div style="display: flex;flex-direction:column;">
                             <a  asp-controller="Account" class="text-dark mt-3" asp-action="Register">Don't have an account yet? Register now</a>
                             <a  asp-controller="Account" class="text-dark mt-3" asp-action="ForgotPassword">Forgot your password?</a>
+                        </div>
+                        <div style="display: flex;flex-direction:row;background-color:rgba(28,215,96,0.3);padding:6px;margin-top:5px;padding-bottom:12px;">
+                            <a role="button" class="btn btn-sm mt-2 p-2" style="flex:50%;max-width:50%;background-color: #1cd760;" asp-controller="Account" asp-action="LoginWithSpotify">Login with Spotify</a>
+                            <p style="flex:50%;font-size:8pt;" class="mt-2 m-1 text-dark">You can use your private spotify playlists by logging in with spotify</p>
                         </div>
                         
                     </form>

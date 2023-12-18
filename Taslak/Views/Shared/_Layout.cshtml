@@ -53,7 +53,14 @@
                         
                         @if(User.Identity.IsAuthenticated)
                         {
-                            <li class="nav-item"><a class="nav-link" asp-controller="x" asp-action="index">Find ur Taste</a></li>
+                            @if(User.FindFirst("SpotifyLoggedIn").Value == "true")
+                            {
+                                <li class="nav-item"><a class="nav-link" asp-controller="x" asp-action="UserPlaylists">Find ur Taste</a></li>
+                            }
+                            else
+                            {
+                                <li class="nav-item"><a class="nav-link" asp-controller="x" asp-action="index">Find ur Taste</a></li>
+                            }
                         }
                         else
                         {
@@ -66,10 +73,8 @@
                             <a class="btn btn-secondary" style="background-color:transparent !important;border:none !important;color:black !important" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-person-circle"></i>
                             </a>
-
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Profile</a></li>
-                                <li><a class="dropdown-item" asp-controller="x" asp-action="index">Find ur Taste</a></li>
                                 <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Logout</a></li>
                             </ul>
                         </div>
@@ -80,7 +85,7 @@
         @RenderBody()
         <!-- Footer-->
         <footer class="bg-light py-5">
-            <div class="container px-4 px-lg-5"><div class="small text-center text-muted">Copyright &copy; 2023 - Company Name</div></div>
+            <div class="container px-4 px-lg-5"><div class="small text-center text-muted">Copyright &copy; 2023 - 7Taste</div></div>
         </footer>
         <script src="~/lib/jquery/dist/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>

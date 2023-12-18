@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Taslak.Services
 {
-    public interface IApiService
+    public interface IEmailService
     {
-        Task<string> MakeRecommendation(string id, string random_id);
+        Task<string> SendEmail(string name,string email, string subject, string message);
     }
 }

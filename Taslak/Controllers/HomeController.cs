@@ -3,16 +3,16 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Taslak.Models;
 using Taslak.Services;
-using Python.Runtime;
+using Microsoft.AspNetCore.Http;
 namespace Taslak.Controllers;
 
 public class HomeController : Controller
 {
-    //İki arkadaş biri bir playlist atıyor bir link oluşturuyor diğeri girip bir playlist atıyor ikisi ortak şarkılarla algoritmaya katılıyor ve öneriler alıyor.
     private readonly IConfiguration _configuration;
     private readonly ISpotifyAccountService _spotifyAccountService;
     private readonly ISpotifyService _spotifyService;
-    public HomeController( ISpotifyAccountService spotifyAccountService,IConfiguration configuration,ISpotifyService spotifyService)
+
+    public HomeController( ISpotifyAccountService spotifyAccountService,IConfiguration configuration,ISpotifyService spotifyService )
     {
         _configuration = configuration;
         _spotifyAccountService = spotifyAccountService;
@@ -21,6 +21,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+
         return View();
     }
     public async Task<IActionResult> AudioFeatures()
@@ -37,7 +38,7 @@ public class HomeController : Controller
             seed_tracks = new string[]{"6iVUUdlKrs3OWF4tSwIXc7,1i4aPgWCSvl0htp3Izkxct,155kLkYkxwagprqesFC6aK"},
             min_popularity = "50",
             limit = "10"
-        }, token);
+        });
         ViewBag.Recommendations = recommendations.Tracks;
         return View();
     }
@@ -45,7 +46,6 @@ public class HomeController : Controller
     {
         string SpotifyUrl = id.Split("/").Last();
         string token = await _spotifyAccountService.GetToken(_configuration["Spotify:ClientId"], _configuration["Spotify:ClientSecret"]);
-        System.Console.WriteLine(id);
         var playlist = await _spotifyService.GetPlaylist($"https://open.spotify.com/playlist/{SpotifyUrl}", token);
         ViewBag.Playlist = playlist;
 
