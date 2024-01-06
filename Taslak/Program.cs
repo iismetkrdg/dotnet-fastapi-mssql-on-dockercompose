@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddDbContext<MyDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("MvcContext")));
+        options.UseMySql(builder.Configuration.GetConnectionString("MvcContext"),ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MvcContext"))));
 
 
 builder.Services.AddHttpClient<ISpotifyAccountService, SpotifyAccountService>(client =>
@@ -21,7 +21,7 @@ builder.Services.AddHttpClient<ISpotifyService, SpotifyService>(client =>
 });
 builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8081/");
+    client.BaseAddress = new Uri("http://ismetkaradag.xyz/");
 });
 builder.Services.AddHttpClient<IEmailService, EmailService>(client =>
 {

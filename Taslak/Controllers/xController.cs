@@ -66,7 +66,7 @@ namespace Taslak.Controllers
                 string randomId = randomGuid.ToString();
                 var model = new RecommendationModel
                 {
-                    Id = randomId,
+                    Guid = randomId,
                     PlaylistIds = ids.ToArray()
                 };
                 _context.RecommendationModel.Add(model);
@@ -79,7 +79,7 @@ namespace Taslak.Controllers
         }
         public async Task<IActionResult> Data(string id)
         {
-            var model = _context.RecommendationModel.FirstOrDefault(x=>x.Id == id);
+            var model = _context.RecommendationModel.FirstOrDefault(x=>x.Guid == id);
             if (model == null)
             {
                 return RedirectToAction("Index");
@@ -220,7 +220,7 @@ namespace Taslak.Controllers
                     var response2 = await client2.SendAsync(request2);
                     var responseJson2 = response2.Content.ReadAsStringAsync();
                     var playlist2 = JsonConvert.DeserializeObject<CreatedPlaylist>(responseJson2.Result);
-                    user.DiscoveredTrack += playlist2.Tracks.Items.Count();
+                    user.DiscoveredTrack += ids.TrackIds.Length;
                     user.XTimesUsedAlg += 1;
                     _context.User.Update(user);
                     _context.SaveChanges();

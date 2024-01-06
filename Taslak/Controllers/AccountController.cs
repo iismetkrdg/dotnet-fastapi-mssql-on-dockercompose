@@ -8,7 +8,6 @@ using Taslak.Models;
 using Taslak.ViewModels;
 using System.Text.Json;
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Taslak.Services;
 namespace Taslak.Controllers
 {
@@ -97,7 +96,7 @@ namespace Taslak.Controllers
                 var a = _context.User.FirstOrDefault(p => p.Email == user.Email);
                 if(a != null)
                 {
-                    ModelState.AddModelError(nameof(user.Email),"Bu mail adresi zaten kullanılıyor.");
+                    ModelState.AddModelError(nameof(user.Email),"This email address is already in use.");
                     return View(user);
                 }else{
                         string md5Salt = _configuration.GetValue<string>("AppSettings:MD5Salt");
@@ -108,8 +107,8 @@ namespace Taslak.Controllers
                         user.Repassword = hashedPassword;
                         _context.Add(user);
                         await _context.SaveChangesAsync();
-                        var text = $"Selam yeni kullanıcı,\n\nAramıza hoşgeldin! Dilersen 7Taste hesabını Spotify hesabın ile eşleyebilir, kullanımı daha kolay bir arayüz ile yeni şarkılar keşfedebilirsin.\n\nİyi Keşifler.\n7Taste ekibi";
-                        await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+                        var text = $"Hi new discoverer,\n\nWelcome to the 7Taste! If you wish, you can pair your 7Taste account with your Spotify account and discover new songs with an easier to use interface.\n\nHappy Discoveries.\n7Taste team";
+                        await emailService.SendEmail(user.Username,user.Email,"7Taste Team",text);
                         return RedirectToAction("Login","Account");
                     }
             }
@@ -128,7 +127,7 @@ namespace Taslak.Controllers
         {
             if(!ModelState.IsValid)
             {
-                ModelState.AddModelError(nameof(data.Email),"E-mail zorunludur.");
+                ModelState.AddModelError(nameof(data.Email),"E-mail is required.");
                 return View(data);
                 
             }else{
@@ -143,11 +142,11 @@ namespace Taslak.Controllers
                     user.Repassword = hashedPassword;
                     _context.Update(user);
                     await _context.SaveChangesAsync();
-                    var text = $"Merhaba {user.Username},\n\nYeni şifreniz: {newPassword}\n\nİyi günler.\n7Taste ekibi";
-                    await emailService.SendEmail(user.Username,user.Email,"Şifre Sıfırlama İsteği",text);
+                    var text = $"Hi {user.Username},\n\nYour new password: {newPassword}\n\nYou can change your password from your profile.\n7Taste Team";
+                    await emailService.SendEmail(user.Username,user.Email,"7Taste Team",text);
                     return RedirectToAction("Login","Account");
                 }else{
-                    ModelState.AddModelError(nameof(data.Email),"Bu mail adresi kayıtlı değil.");
+                    ModelState.AddModelError(nameof(data.Email),"Nobody has registered with this e-mail address.");
                     return View(data);
                 }
             }
@@ -172,8 +171,8 @@ namespace Taslak.Controllers
             await _context.SaveChangesAsync();
             _ = AuthenticationHttpContextExtensions.SignOutAsync(HttpContext
                 , CookieAuthenticationDefaults.AuthenticationScheme);
-            var text = $"Selam {user.Username},\n\nAramızdan ayrılmana üzüldük. Umarız en kısa zamanda tekrar burada olursun.\n\nTüm verilerini sildik. Bizde sana ait hiçbir veri kalmadı.\n\n7Taste ekibi";
-            await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+            var text = $"Hi {user.Username},\n\nWe are sorry to see you leave us. We hope you'll be here again soon.\n\nWe deleted all your data. We have no data left about you.\n\n7Taste Team";
+            await emailService.SendEmail(user.Username,user.Email,"7Taste Team",text);
             return RedirectToAction(nameof(Logout));
         }
         public IActionResult LoginWithSpotify()
@@ -236,8 +235,8 @@ namespace Taslak.Controllers
                 Response.Cookies.Append("expires_in", token.expires_in.ToString(), options);
                 _context.Update(user);
                 _context.SaveChanges();
-                var text = $"Selam {user.Username},\n\nSpotify hesabın ile 7Taste'e bağlandın.\n\nİyi Keşifler.\n7Taste ekibi";
-                await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+                var text = $"Hi {user.Username},\n\nYou are connected to 7Taste with your Spotify account.\n\nHappy Discoveries.\n7Taste Team";
+                await emailService.SendEmail(user.Username,user.Email,"7Taste Team",text);
                 return RedirectToAction("UserPlaylists","x");
             }
             else
@@ -286,8 +285,8 @@ namespace Taslak.Controllers
                     Response.Cookies.Append("expires_in", token.expires_in.ToString(), options);
                     _context.Update(user);
                     _context.SaveChanges();
-                    var text = $"Selam {user.Username},\n\n7Taste hesabını Spotify hesabın ile eşledin.\n\nİyi Keşifler.\n7Taste ekibi";
-                    await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+                    var text = $"Hi {user.Username},\n\nYou have paired your 7Taste account with your Spotify account.\n\nHappy Discoveries.\n7Taste Team";
+                    await emailService.SendEmail(user.Username,user.Email,"7Taste Team",text);
                     return RedirectToAction("UserPlaylists","x");
                 }
                 else
@@ -331,10 +330,32 @@ namespace Taslak.Controllers
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                         new ClaimsPrincipal(claimsIdentity),
                         authproperties);
-                    var text = $"Selam {user.Username},\n\nAramıza hoşgeldin. Seni aramızda görmek çok güzel. İyi keşifler diliyoruz.\n\n7Taste ekibi";
-                    await emailService.SendEmail(user.Username,user.Email,"7Taste Ekibi",text);
+                    var text = $"Hi {user.Username},\n\nWelcome to the 7Taste. It's nice to see you among us. We wish you good discoveries.\n\n7Taste Team";
+                    await emailService.SendEmail(user.Username,user.Email,"7Taste Team",text);
                     return RedirectToAction("UserPlaylists","x");
                 }
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel data)
+        {
+            System.Console.WriteLine("selam");
+            if(!ModelState.IsValid)
+            {   
+                return Json(new { success = false, message = "Şifreler uyuşmuyor." });
+            }else{
+                var user = _context.User.FirstOrDefault(p => p.Username == User.Identity.Name);
+                string md5Salt = _configuration.GetValue<string>("AppSettings:MD5Salt");
+                string saltedPassword = data.NewP + md5Salt;
+                string hashedPassword = saltedPassword.MD5();
+                user.Password = hashedPassword;
+                user.Repassword = hashedPassword;
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+                var text = $"Hi {user.Username},\n\nYour password has been changed. \n\nHave a nice day.\n7Taste Team";
+                await emailService.SendEmail(user.Username,user.Email,"7Taste Team",text);
+                return Json(new { success = true, message = "Şifreniz başarıyla değiştirildi." });
             }
         }
         
